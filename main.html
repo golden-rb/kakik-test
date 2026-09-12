@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>kazik-test</title>
+        <meta charset="UTF-8">
+        <style>
+            :root {
+                --card-ratio: 10 / 1;
+                --medium-card-ratio: 10 / 1;
+                --input-ratio: 10 / 1;
+                --button-ratio: 10 / 1;
+            }
+
+            .glass {
+                backdrop-filter: blur(1.5px) saturate(180%);
+                border: 1.5px rgba(244, 244, 244, .35) solid;
+                box-shadow: 0px 8px 32px rgba(0,0,0,.5), inset 0 4px 20px rgba(255, 255, 255, 0.3);
+                border-radius: 5000px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+            #title {
+                color: #fff;
+                background-color: rgba(0, 0, 0, .1);
+                width: 65%;
+                aspect-ratio: var(--card-ratio);
+                margin-left: 17.5%;
+            }
+            #balance {
+                color: #afa;
+                background-color: rgba(50, 150, 75, .2);
+                width: 55%;
+                aspect-ratio: var(--medium-card-ratio);
+                margin-left: 22.5%;
+            }
+            #record {
+                color: #aff;
+                background-color: rgba(50, 85, 150, .2);
+                width: 38%;
+                aspect-ratio: var(--medium-card-ratio);
+                margin-left: 31%;
+                margin-bottom: 10%;
+            }
+            #dep {
+                color: #fec;
+                background-color: rgba(0, 0, 0, .2);
+                width: 70%;
+                aspect-ratio: var(--input-ratio);
+                font-size: 220%;
+                margin-left: 15%;
+                padding: 0 1rem;
+            }
+            .text {
+                color: #fff;
+                background-color: rgba(0, 0, 0, .2);
+                width: 100%;
+                aspect-ratio: 10 / .5;
+                margin-top: 5%;
+                border-radius: 100000px;
+                text-align: center;
+                align-items: center;
+            }
+            #depButton {
+                color: #fff;
+                background-color: rgba(150, 200, 255, .1);
+                width: 85%;
+                aspect-ratio: var(--button-ratio);
+                font-size: 250%;
+                margin-top: 5%;
+                margin-left: 7.5%;
+                backdrop-filter: blur(2px) saturate(100%);
+            }
+            input[type="number"]:focus {
+                outline: none;
+            }
+            body {
+                background: url("https://i.ibb.co/h14dHwvc/Ibragim.jpg") #122 no-repeat;
+                font-family: Geneva;
+                margin-top: 0;
+                background-size: cover;          
+                background-position: center;    
+                background-repeat: no-repeat;   
+                background-attachment: fixed;
+                min-height: 100vh;
+                max-width: 120vh;
+                max-height: 100vh;
+                max-width: 120vh;
+                justify-content: center;
+                align-items: center;
+                align-content: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="title" class="glass"> kazik </h1>
+        <h2 id="balance" class="glass" onclick="changeMoneyStyle()">100$</h2>
+        <h2 id="record" class="glass">Рекорд: 100$</h2>
+        <h2 class="text">Сколько желаете депнуть?</h2>
+        <input id="dep" class="glass" type="number" preview="Количество денег">
+        <button id="depButton" class="glass" onclick="onDep()">Депнуть!</button>
+        <h2 id="notification" class="text"></h2>
+        <script src="https://unpkg.com/cookielib/src/cookie.js"></script>
+        <script src="https://unpkg.com/cookielib/src/cookie.min.js"></script>
+        <script>
+            let money = getCookie("money") ? getCookie("money") : 100;
+            let record = getCookie("record") ? getCookie("record") : 100;
+            const winSound = new Audio('https://www.myinstants.com/en/instant/apple-pay-45496/');
+            const loseSound = new Audio('https://soundboardguys.com/sound/discord-leave/');
+
+            const depButton = document.getElementById("depButton")
+            const notification = document.getElementById("notification")
+            const balance = document.getElementById("balance")
+            const recordtext = document.getElementById("record")
+            const input = document.getElementById("dep")
+
+            recordtext.innerHTML = `Рекорд: ${record.toLocaleString('ru-RU')}$`
+            balance.innerHTML = `${money.toLocaleString('ru-RU')}$`
+            
+            let convertToStringMode = false
+            const chances = [
+                -10,
+                -4, -4,
+                -2, -2, -2, -2,
+                -.5, -.5, -.5, -.5, -.5, -.5,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                2.5, 2.5, 2.5, 2.5, 2.5, 2.5,
+                3, 3, 3, 3, 
+                10, 10,
+                100,
+            ]
+
+const zerosToString = {
+    [3]:  ["Тысяча", "Тысяч", "Тысячи"],
+    [6]:  ["Миллион", "Миллионов", "Миллиона"],
+    [9]:  ["Миллиард", "Миллиардов", "Миллиарда"],
+    [12]: ["Триллион", "Триллионов", "Триллиона"],
+    [15]: ["Квадриллион", "Квадриллионов", "Квадриллиона"],
+    [18]: ["Квинтиллион", "Квинтиллионов", "Квинтиллиона"],
+    [21]: ["Секстиллион", "Секстиллионов", "Секстиллиона"],
+    [24]: ["Септиллион", "Септиллионов", "Септиллиона"],
+    [27]: ["Октиллион", "Октиллионов", "Октиллиона"],
+    [30]: ["Нониллион", "Нониллионов", "Нониллиона"],
+    [33]: ["Дециллион", "Дециллионов", "Дециллиона"],
+    [36]: ["Ундециллион", "Ундециллионов", "Ундециллиона"],
+    [39]: ["Дуодециллион", "Дуодециллионов", "Дуодециллиона"],
+    [42]: ["Тредециллион", "Тредециллионов", "Тредециллиона"],
+    [45]: ["Кваттуордециллион", "Кваттуордециллионов", "Кваттуордециллиона"],
+    [48]: ["Квиндециллион", "Квиндециллионов", "Квиндециллиона"],
+    [51]: ["Сексдециллион", "Сексдециллионов", "Сексдециллиона"],
+    [54]: ["Септендециллион", "Септендециллионов", "Септендециллиона"],
+    [57]: ["Октодециллион", "Октодециллионов", "Октодециллиона"],
+    [60]: ["Новемдециллион", "Новемдециллионов", "Новемдециллиона"],
+    [63]: ["Вигинтиллион", "Вигинтиллионов", "Вигинтиллиона"],
+    [66]: ["Унвигинтиллион", "Унвигинтиллионов", "Унвигинтиллиона"],
+    [69]: ["Дуовигинтиллион", "Дуовигинтиллионов", "Дуовигинтиллиона"],
+    [72]: ["Тресвигинтиллион", "Тресвигинтиллионов", "Тресвигинтиллиона"],
+    [75]: ["Кваттуорвигинтиллион", "Кваттуорвигинтиллионов", "Кваттуорвигинтиллиона"],
+    [78]: ["Квинвигинтиллион", "Квинвигинтиллионов", "Квинвигинтиллиона"],
+    [81]: ["Сесвигинтиллион", "Сесвигинтиллионов", "Сесвигинтиллиона"],
+    [84]: ["Септенвигинтиллион", "Септенвигинтиллионов", "Септенвигинтиллиона"],
+    [87]: ["Октовигинтиллион", "Октовигинтиллионов", "Октовигинтиллиона"],
+    [90]: ["Новемвигинтиллион", "Новемвигинтиллионов", "Новемвигинтиллиона"],
+    [93]: ["Тригинтиллион", "Тригинтиллионов", "Тригинтиллиона"],
+    [96]: ["Унтригинтиллион", "Унтригинтиллионов", "Унтригинтиллиона"],
+    [99]: ["Дуотригинтиллион", "Дуотригинтиллионов", "Дуотригинтиллиона"],
+    [100]: ["Гугол", "Гуголов", "Гугола"]
+}
+        const getMoneyToString = (n) => {
+    if (!convertToStringMode) {
+        return `${n.toLocaleString('ru-RU')}$`
+    }
+    if (n < 1000) {
+        return `${n.toLocaleString('ru-RU')}$`
+    }
+
+    const str = n.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 0 })
+    const totalDigits = str.length
+
+    const groupExponent = Math.floor((totalDigits - 1) / 3) * 3
+    const nearest = zerosToString[groupExponent]
+    if (!nearest) return `${n.toLocaleString('ru-RU')}$`
+
+    const leadCount = totalDigits - groupExponent        
+    const firstNumbers = str.slice(0, leadCount)      
+    const secondNumbers = str.slice(leadCount, leadCount + 1)
+
+    const lastDigit = firstNumbers[firstNumbers.length - 1]
+    const prevDigit = firstNumbers.length > 1 ? firstNumbers[firstNumbers.length - 2] : '0'
+
+    let form
+    if (prevDigit === '1') {
+        form = nearest[1] 
+        form = nearest[0]
+    } else if (['2', '3', '4'].includes(lastDigit)) {
+        form = nearest[2]
+    } else {
+        form = nearest[1]
+    }
+
+    return `${firstNumbers}.${secondNumbers} ${form}$`
+}
+            
+            const changeMoneyStyle = () => {
+                convertToStringMode = !convertToStringMode
+                recordtext.innerHTML = `Рекорд: ${getMoneyToString(record)}`
+                balance.innerHTML = `${getMoneyToString(money)}`
+            }
+
+            const onDep = () => {
+                const dep = Math.floor(input.value)
+                const depStr = toString(dep).indexOf("-") >= 1 ? true : toString(dep).indexOf(".") >= 1 ? true : toString(dep).indexOf(".") >= 1 ? true : false
+                if (dep == "" || dep < 1 || depStr) {
+                    console.log(dep, depStr)
+                    notification.innerHTML = "Укажи нормальное количество, ладно?";
+                    notification.style.color = "rgb(255, 255, 255)"
+                    return 0
+                }
+                const multiplier = chances[Math.floor(Math.random() * chances.length)]
+                if (dep > money) {
+                    notification.innerHTML = "Нищита"
+                    notification.style.color = "rgb(255, 150, 100)"
+                } else {
+                    money = Math.floor(money - dep + dep * multiplier)
+                    if (money < record / 100 * .065 | money < 100) {
+                        money = Math.floor(record / 100 * .025)
+                        if (money < 100) {
+                            money = 100
+                        }
+                    }
+                    if (money > record) {
+                        record = Math.floor(money)
+                        setCookie("record", record)
+                        recordtext.innerHTML = `Рекорд: ${getMoneyToString(record)}`
+                    }
+                    if (multiplier > 1) {
+                        winSound.play()
+                    } else {
+                        loseSound.play()
+                    }
+
+                    notification.innerHTML = `Выпал ${multiplier}x,  ${multiplier >= 1 ? "+" : ""}${Math.floor(dep * multiplier - dep).toLocaleString('ru-RU')}$`
+                    notification.style.color = multiplier === 1 ? "rgb(255, 255, 255)" : multiplier > 1 ? "rgb(117, 255, 94)" : "rgb(255, 117, 117)"
+                    balance.innerHTML = `${getMoneyToString(money)}`
+                    setCookie("money", money)
+                }
+            };
+
+        </script>
+    </body>
+</html>
